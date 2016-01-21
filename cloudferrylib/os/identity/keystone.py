@@ -164,7 +164,7 @@ class KeystoneIdentity(identity.Identity):
         if kwargs.get('tenant_id'):
             self.filter_tenant_id = kwargs['tenant_id'][0]
 
-        tenant_list = self.get_tenants_list()
+        tenant_list = self.get_tenants_list(self.filter_tenant_id)
         info['tenants'] = [self.convert(tenant, self.config)
                            for tenant in tenant_list]
         user_list = self.get_users_list()
@@ -266,7 +266,7 @@ class KeystoneIdentity(identity.Identity):
         default_tenant = self.config.cloud.tenant \
             if return_default_tenant else NO_TENANT
         tenants = {tenant.id: tenant.name for tenant in
-                   self.get_tenants_list()}
+                   self.get_tenants_list(self.filter_tenant_id)}
 
         def func(tenant_id):
             return tenants.get(tenant_id, default_tenant)
@@ -281,7 +281,7 @@ class KeystoneIdentity(identity.Identity):
     def get_tenant_by_name(self, tenant_name):
         """ Getting tenant by name from keystone. """
 
-        for tenant in self.get_tenants_list():
+        for tenant in self.get_tenants_list(self.filter_tenant_id):
             if tenant.name == tenant_name:
                 return tenant
 
@@ -316,14 +316,14 @@ class KeystoneIdentity(identity.Identity):
 
         return self.keystone_client.services.list()
 
-    def get_tenants_list(self):
+    def get_tenants_list(self, filter_tenant_id=None):
         """ Getting list of tenants from keystone. """
         result = []
         ks_tenants = self.keystone_client.tenants
-        filtering_enabled = (self.filter_tenant_id and
+        filtering_enabled = (filter_tenant_id and
                              self.cloud.position == 'src')
         if filtering_enabled:
-            result.append(ks_tenants.find(id=self.filter_tenant_id))
+            result.append(ks_tenants.find(id=filter_tenant_id))
 
             resources_with_public_objects = [
                 self.cloud.resources[utl.IMAGE_RESOURCE],
@@ -332,11 +332,11 @@ class KeystoneIdentity(identity.Identity):
 
             tenants_required_by_resource = set()
             for r in resources_with_public_objects:
-                for t in r.required_tenants(self.filter_tenant_id):
+                for t in r.required_tenants(filter_tenant_id):
                     LOG.info('Tenant %s is required by %s', t,
                              r.__class__.__name__)
                     tenants_required_by_resource.add(t)
-            tenant_ids = [self.filter_tenant_id]
+            tenant_ids = [filter_tenant_id]
             for tenant_id in tenants_required_by_resource:
                 if tenant_id in tenant_ids:
                     continue
@@ -487,7 +487,7 @@ class KeystoneIdentity(identity.Identity):
     def _deploy_tenants(self, tenants):
         LOG.info('Deploying tenants...')
         dst_tenants = {tenant.name: tenant.id for tenant in
-                       self.get_tenants_list()}
+                       self.get_tenants_list(self.filter_tenant_id)}
         for _tenant in tenants:
             tenant = _tenant['tenant']
             if tenant['name'] not in dst_tenants:

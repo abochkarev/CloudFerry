@@ -164,7 +164,7 @@ class GlanceImage(image.Image):
         )
 
     def required_tenants(self, filter_tenant_id=None):
-        old_filter_tanant_id = self.filter_tenant_id
+        old_filter_tenant_id = self.filter_tenant_id
         self.filter_tenant_id = filter_tenant_id
 
         tenants = set()
@@ -177,7 +177,7 @@ class GlanceImage(image.Image):
                 tenant_id = self.identity_client.get_tenant_id_by_name(name)
                 tenants.add(tenant_id)
 
-        self.filter_tenant_id = old_filter_tanant_id
+        self.filter_tenant_id = old_filter_tenant_id
 
         return list(tenants)
 

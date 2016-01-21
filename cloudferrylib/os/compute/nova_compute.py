@@ -182,8 +182,8 @@ class NovaCompute(compute.Compute):
             tmp_list = \
                 [admin_tenant_id, service_tenant_id, self.filter_tenant_id]
             tenant_ids = \
-                [tenant.id for tenant in self.identity.get_tenants_list()
-                    if tenant.id in tmp_list]
+                [tenant.id for tenant in self.identity.get_tenants_list(
+                    self.filter_tenant_id) if tenant.id in tmp_list]
         else:
             tenant_ids = \
                 [tenant.id for tenant in self.identity.get_tenants_list()

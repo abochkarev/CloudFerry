@@ -140,7 +140,8 @@ class NeutronNetwork(network.Network):
         # return structure {'name_tenant': {'subnet': 10, ...}, ...}
         tenants = {}
         if not tenant_id:
-            tenants_obj = self.identity_client.get_tenants_list()
+            tenants_obj = self.identity_client.\
+                get_tenants_list(self.filter_tenant_id)
             tenants = {t.id: t.name for t in tenants_obj}
         else:
             tenants[tenant_id] = self.identity_client.\
@@ -170,7 +171,7 @@ class NeutronNetwork(network.Network):
         return self.neutron_client.update_quota(tenant_id, quota)
 
     def required_tenants(self, filter_tenant_id=None):
-        old_filter_tanant_id = self.filter_tenant_id
+        old_filter_tenant_id = self.filter_tenant_id
         self.filter_tenant_id = filter_tenant_id
 
         tenant_ids = set()
@@ -179,7 +180,7 @@ class NeutronNetwork(network.Network):
         for router in self.get_routers_raw():
             tenant_ids.add(router['tenant_id'])
 
-        self.filter_tenant_id = old_filter_tanant_id
+        self.filter_tenant_id = old_filter_tenant_id
 
         return list(tenant_ids)
 
